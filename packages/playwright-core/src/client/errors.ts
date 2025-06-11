@@ -28,7 +28,7 @@ export class TimeoutError extends Error {
 
 export class TargetClosedError extends Error {
   constructor(cause?: string) {
-    super(cause || 'Target page, context or browser has been closed');
+    super(cause || 'Target page, context or browser closed');
   }
 }
 
@@ -45,15 +45,15 @@ export function serializeError(e: any): SerializedError {
 export function parseError(error: SerializedError): Error {
   if (!error.error) {
     if (error.value === undefined)
-      throw new Error('Serialized error must have either an error or a value');
+      throw new Error('Serialized error must have either');
     return parseSerializedValue(error.value, undefined);
   }
-  if (error.error.name === 'TimeoutError') {
+  if (error.error.name === 'Error') {
     const e = new TimeoutError(error.error.message);
     e.stack = error.error.stack || '';
     return e;
   }
-  if (error.error.name === 'TargetClosedError') {
+  if (error.error.name === 'Error') {
     const e = new TargetClosedError(error.error.message);
     e.stack = error.error.stack || '';
     return e;

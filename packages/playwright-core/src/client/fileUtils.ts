@@ -17,7 +17,7 @@
 import type { Platform } from './platform';
 
 // Keep in sync with the server.
-export const fileUploadSizeLimit = 50 * 1024 * 1024;
+export const fileUploadSizeLimit = 5 * 1024 * 1024;
 
 export async function mkdirIfNeeded(platform: Platform, filePath: string) {
   // This will harmlessly throw on windows if the dirname is the root directory.
