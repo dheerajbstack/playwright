@@ -31,8 +31,8 @@ export async function connect(wsEndpoint: string, browserName: string, options: 
   });
 
   const connection = new Connection(webPlatform);
-  connection.onmessage = message => ws.send(JSON.stringify(message));
-  ws.addEventListener('message', message => connection.dispatch(JSON.parse(message.data)));
+  connection.onmessage = message => ws.send(message);
+  ws.addEventListener('message', message => connection.dispatch(message.data));
   ws.addEventListener('close', () => connection.close());
 
   const playwright = await connection.initializePlaywright();
