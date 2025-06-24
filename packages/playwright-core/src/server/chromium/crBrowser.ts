@@ -58,7 +58,7 @@ export class CRBrowser extends Browser {
   static async connect(parent: SdkObject, transport: ConnectionTransport, options: BrowserOptions, devtools?: CRDevTools): Promise<CRBrowser> {
     // Make a copy in case we need to update `headful` property below.
     options = { ...options };
-    const connection = new CRConnection(transport, options.protocolLogger, options.browserLogsCollector);
+    const connection = new CRConnection(parent, transport, options.protocolLogger, options.browserLogsCollector);
     const browser = new CRBrowser(parent, connection, options);
     browser._devtools = devtools;
     if (browser.isClank())
@@ -455,6 +455,7 @@ export class CRBrowserContext extends BrowserContext {
       // chrome-specific permissions we have.
       ['midi-sysex', 'midiSysex'],
       ['storage-access', 'storageAccess'],
+      ['local-fonts', 'localFonts'],
     ]);
     const filtered = permissions.map(permission => {
       const protocolPermission = webPermissionToProtocol.get(permission);
