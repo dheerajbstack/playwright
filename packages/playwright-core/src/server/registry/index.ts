@@ -384,9 +384,7 @@ const DOWNLOAD_PATHS: Record<BrowserName | InternalTool, DownloadPaths> = {
     'win64': 'builds/android/%s/android.zip',
   },
   // TODO(bidi): implement downloads.
-  '_bidiFirefox': {
-  } as DownloadPaths,
-  '_bidiChromium': {
+  'bidi': {
   } as DownloadPaths,
 };
 
@@ -482,7 +480,7 @@ function readDescriptors(browsersJSON: BrowsersJSON): BrowsersJSONDescriptor[] {
   });
 }
 
-export type BrowserName = 'chromium' | 'firefox' | 'webkit' | '_bidiFirefox' | '_bidiChromium';
+export type BrowserName = 'chromium' | 'firefox' | 'webkit' | 'bidi';
 type InternalTool = 'ffmpeg' | 'winldd' | 'firefox-beta' | 'chromium-tip-of-tree' | 'chromium-headless-shell' | 'chromium-tip-of-tree-headless-shell' | 'android';
 type BidiChannel = 'moz-firefox' | 'moz-firefox-beta' | 'moz-firefox-nightly' | 'bidi-chrome-canary' | 'bidi-chrome-stable' | 'bidi-chromium';
 type ChromiumChannel = 'chrome' | 'chrome-beta' | 'chrome-dev' | 'chrome-canary' | 'msedge' | 'msedge-beta' | 'msedge-dev' | 'msedge-canary';
@@ -719,8 +717,8 @@ export class Registry {
     }));
     this._executables.push({
       type: 'browser',
-      name: '_bidiChromium',
-      browserName: '_bidiChromium',
+      name: 'bidi-chromium',
+      browserName: 'bidi',
       directory: chromium.dir,
       executablePath: () => chromiumExecutable,
       executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('chromium', chromiumExecutable, chromium.installByDefault, sdkLanguage),
@@ -844,6 +842,21 @@ export class Registry {
       _dependencyGroup: 'tools',
       _isHermeticInstallation: true,
     });
+
+    this._executables.push({
+      type: 'browser',
+      name: 'bidi',
+      browserName: 'bidi',
+      directory: undefined,
+      executablePath: () => undefined,
+      executablePathOrDie: () => '',
+      installType: 'none',
+      _validateHostRequirements: () => Promise.resolve(),
+      downloadURLs: [],
+      _install: () => Promise.resolve(),
+      _dependencyGroup: 'tools',
+      _isHermeticInstallation: true,
+    });
   }
 
   private _createChromiumChannel(name: ChromiumChannel, lookAt: Record<'linux' | 'darwin' | 'win32', string>, install?: () => Promise<void>): ExecutableImpl {
@@ -918,7 +931,7 @@ export class Registry {
     return {
       type: 'channel',
       name,
-      browserName: '_bidiFirefox',
+      browserName: 'bidi',
       directory: undefined,
       executablePath: (sdkLanguage: string) => executablePath(sdkLanguage, false),
       executablePathOrDie: (sdkLanguage: string) => executablePath(sdkLanguage, true)!,
@@ -934,7 +947,7 @@ export class Registry {
       const suffix = lookAt[process.platform as 'linux' | 'darwin' | 'win32'];
       if (!suffix) {
         if (shouldThrow)
-          throw new Error(`Chromium distribution '${name}' is not supported on ${process.platform}`);
+          throw new Error(`Firefox distribution '${name}' is not supported on ${process.platform}`);
         return undefined;
       }
       const prefixes = (process.platform === 'win32' ? [
@@ -961,7 +974,7 @@ export class Registry {
     return {
       type: 'channel',
       name,
-      browserName: '_bidiChromium',
+      browserName: 'bidi',
       directory: undefined,
       executablePath: (sdkLanguage: string) => executablePath(sdkLanguage, false),
       executablePathOrDie: (sdkLanguage: string) => executablePath(sdkLanguage, true)!,
@@ -1197,7 +1210,7 @@ export class Registry {
   private async _installMSEdgeChannel(channel: 'msedge'|'msedge-beta'|'msedge-dev', scripts: Record<'linux' | 'darwin' | 'win32', string>) {
     const scriptArgs: string[] = [];
     if (process.platform !== 'linux') {
-      const products = lowercaseAllKeys(JSON.parse(await fetchData(undefined, { url: 'https://edgeupdates.microsoft.com/api/products' })));
+      const products = lowercaseAllKeys(JSON.parse(await fetchData({ url: 'https://edgeupdates.microsoft.com/api/products' })));
 
       const productName = {
         'msedge': 'Stable',

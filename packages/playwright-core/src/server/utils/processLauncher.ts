@@ -164,7 +164,7 @@ export async function launchProcess(options: LaunchProcessOptions): Promise<Laun
     spawnedProcess.once('error', error => {
       failed(new Error('Failed to launch: ' + error));
     });
-    return failedPromise.then(e => Promise.reject(e));
+    return cleanup().then(() => failedPromise).then(e => Promise.reject(e));
   }
   options.log(`<launched> pid=${spawnedProcess.pid}`);
 

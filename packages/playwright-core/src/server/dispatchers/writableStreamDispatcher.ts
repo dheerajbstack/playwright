@@ -17,27 +17,18 @@
 import fs from 'fs';
 
 import { Dispatcher } from './dispatcher';
-import { SdkObject } from '../instrumentation';
+import { createGuid } from '../utils/crypto';
 
 import type { BrowserContextDispatcher } from './browserContextDispatcher';
 import type * as channels from '@protocol/channels';
 
-class WritableStreamSdkObject extends SdkObject {
-  readonly streamOrDirectory: fs.WriteStream | string;
-  readonly lastModifiedMs: number | undefined;
-
-  constructor(parent: SdkObject, streamOrDirectory: fs.WriteStream | string, lastModifiedMs: number | undefined) {
-    super(parent, 'stream');
-    this.streamOrDirectory = streamOrDirectory;
-    this.lastModifiedMs = lastModifiedMs;
-  }
-}
-
-export class WritableStreamDispatcher extends Dispatcher<WritableStreamSdkObject, channels.WritableStreamChannel, BrowserContextDispatcher> implements channels.WritableStreamChannel {
+export class WritableStreamDispatcher extends Dispatcher<{ guid: string, streamOrDirectory: fs.WriteStream | string }, channels.WritableStreamChannel, BrowserContextDispatcher> implements channels.WritableStreamChannel {
   _type_WritableStream = true;
+  private _lastModifiedMs: number | undefined;
 
   constructor(scope: BrowserContextDispatcher, streamOrDirectory: fs.WriteStream | string, lastModifiedMs?: number) {
-    super(scope, new WritableStreamSdkObject(scope._object, streamOrDirectory, lastModifiedMs), 'WritableStream', {});
+    super(scope, { guid: 'writableStream@' + createGuid(), streamOrDirectory }, 'WritableStream', {});
+    this._lastModifiedMs = lastModifiedMs;
   }
 
   async write(params: channels.WritableStreamWriteParams): Promise<channels.WritableStreamWriteResult> {
@@ -59,8 +50,8 @@ export class WritableStreamDispatcher extends Dispatcher<WritableStreamSdkObject
       throw new Error('Cannot close a directory');
     const stream = this._object.streamOrDirectory;
     await new Promise<void>(fulfill => stream.end(fulfill));
-    if (this._object.lastModifiedMs)
-      await fs.promises.utimes(this.path(), new Date(this._object.lastModifiedMs), new Date(this._object.lastModifiedMs));
+    if (this._lastModifiedMs)
+      await fs.promises.utimes(this.path(), new Date(this._lastModifiedMs), new Date(this._lastModifiedMs));
   }
 
   path(): string {

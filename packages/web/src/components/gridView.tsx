@@ -92,7 +92,6 @@ export function GridView<T>(model: GridViewProps<T>) {
       <ListView
         name={model.name}
         items={model.items}
-        ariaLabel={model.ariaLabel}
         id={model.id}
         render={(item, index) => {
           return <>

@@ -18,6 +18,7 @@ import { EventEmitter } from 'events';
 import net from 'net';
 
 import { assert } from '../../utils/isomorphic/assert';
+import { createGuid } from '../utils/crypto';
 import { debug } from '../../utilsBundle';
 
 import type { Backend, DeviceBackend, SocketBackend } from './android';
@@ -116,6 +117,7 @@ function encodeMessage(message: string): Buffer {
 }
 
 class BufferedSocketWrapper extends EventEmitter implements SocketBackend {
+  readonly guid = createGuid();
   private _socket: net.Socket;
   private _buffer = Buffer.from([]);
   private _isSocket = false;

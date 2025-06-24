@@ -8993,7 +8993,6 @@ export interface BrowserContext {
    * - `'notifications'`
    * - `'payment-handler'`
    * - `'storage-access'`
-   * - `'local-fonts'`
    * @param options
    */
   grantPermissions(permissions: ReadonlyArray<string>, options?: {

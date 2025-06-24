@@ -624,8 +624,8 @@ export type PlaywrightInitializer = {
   chromium: BrowserTypeChannel,
   firefox: BrowserTypeChannel,
   webkit: BrowserTypeChannel,
-  _bidiChromium: BrowserTypeChannel,
-  _bidiFirefox: BrowserTypeChannel,
+  bidiChromium: BrowserTypeChannel,
+  bidiFirefox: BrowserTypeChannel,
   android: AndroidChannel,
   electron: ElectronChannel,
   utils?: LocalUtilsChannel,
@@ -3238,7 +3238,7 @@ export type FrameWaitForSelectorResult = {
   element?: ElementHandleChannel,
 };
 export type FrameExpectParams = {
-  selector?: string,
+  selector: string,
   expression: string,
   expressionArg?: any,
   expectedText?: ExpectedTextValue[],
@@ -3249,7 +3249,6 @@ export type FrameExpectParams = {
   timeout: number,
 };
 export type FrameExpectOptions = {
-  selector?: string,
   expressionArg?: any,
   expectedText?: ExpectedTextValue[],
   expectedNumber?: number,

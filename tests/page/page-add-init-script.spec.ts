@@ -99,10 +99,9 @@ it('init script should run only once in iframe', async ({ page, server, browserN
   ]);
 });
 
-it('init script should not observe playwright internals', async ({ server, page, trace, isAndroid }) => {
+it('init script should not observe playwright internals', async ({ server, page, trace }) => {
   it.skip(!!process.env.PW_CLOCK, 'clock installs globalThis.__pwClock');
-  it.skip(trace === 'on', 'tracing installs __playwright_snapshot_streamer');
-  it.fixme(isAndroid, 'There is probably context reuse between this test and some other test that installs a binding');
+  it.fixme(trace === 'on', 'tracing installs __playwright_snapshot_streamer');
 
   await page.addInitScript(() => {
     window['check'] = () => {

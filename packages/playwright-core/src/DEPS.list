@@ -4,8 +4,6 @@ server/
 server/utils
 utils/isomorphic/
 utilsBundle.ts
-protocol/validator.ts
-protocol/validatorPrimitives.ts
 
 [androidServerImpl.ts]
 remote/

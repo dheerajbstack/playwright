@@ -29,10 +29,7 @@ export class Filter {
   annotations: FilterToken[] = [];
 
   empty(): boolean {
-    return (
-      this.project.length + this.status.length + this.text.length +
-      this.labels.length + this.annotations.length
-    ) === 0;
+    return this.project.length + this.status.length + this.text.length === 0;
   }
 
   static parse(expression: string): Filter {

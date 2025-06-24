@@ -48,12 +48,13 @@ function downloadFile(options: DownloadParams): Promise<void> {
   let totalBytes = 0;
 
   const promise = new ManualPromise<void>();
+
   httpRequest({
     url: options.url,
     headers: {
       'User-Agent': options.userAgent,
     },
-    socketTimeout: options.socketTimeout,
+    timeout: options.socketTimeout,
   }, response => {
     log(`-- response status code: ${response.statusCode}`);
     if (response.statusCode !== 200) {

@@ -20,7 +20,6 @@ import { Download } from './download';
 import { SdkObject } from './instrumentation';
 import { Page } from './page';
 import { ClientCertificatesProxy } from './socksClientCertificatesInterceptor';
-import { ProgressController } from './progress';
 
 import type { CallMetadata } from './instrumentation';
 import type * as types from './types';
@@ -28,8 +27,6 @@ import type { ProxySettings } from './types';
 import type { RecentLogsCollector } from './utils/debugLogger';
 import type * as channels from '@protocol/channels';
 import type { ChildProcess } from 'child_process';
-import type { Language } from '../utils';
-import type { Progress } from './progress';
 
 
 export interface BrowserProcess {
@@ -55,7 +52,6 @@ export type BrowserOptions = {
   browserLogsCollector: RecentLogsCollector,
   slowMo?: number;
   wsEndpoint?: string;  // Only there when connected over web socket.
-  sdkLanguage?: Language;
   originalLaunchOptions: types.LaunchOptions;
 };
 
@@ -88,30 +84,25 @@ export abstract class Browser extends SdkObject {
   abstract version(): string;
   abstract userAgent(): string;
 
-  sdkLanguage() {
-    return this.options.sdkLanguage || this.attribution.playwright.options.sdkLanguage;
-  }
-
-  newContextFromMetadata(metadata: CallMetadata, options: types.BrowserContextOptions): Promise<BrowserContext> {
-    const controller = new ProgressController(metadata, this);
-    return controller.run(progress => this.newContext(progress, options));
-  }
-
-  async newContext(progress: Progress, options: types.BrowserContextOptions): Promise<BrowserContext> {
+  async newContext(metadata: CallMetadata, options: types.BrowserContextOptions): Promise<BrowserContext> {
     validateBrowserContextOptions(options, this.options);
     let clientCertificatesProxy: ClientCertificatesProxy | undefined;
     if (options.clientCertificates?.length) {
-      clientCertificatesProxy = await progress.raceWithCleanup(ClientCertificatesProxy.create(options), proxy => proxy.close());
+      clientCertificatesProxy = new ClientCertificatesProxy(options);
       options = { ...options };
-      options.proxyOverride = clientCertificatesProxy.proxySettings();
+      options.proxyOverride = await clientCertificatesProxy.listen();
       options.internalIgnoreHTTPSErrors = true;
     }
-    const context = await progress.raceWithCleanup(this.doCreateNewContext(options), context => context.close({ reason: 'Failed to create context' }));
+    let context;
+    try {
+      context = await this.doCreateNewContext(options);
+    } catch (error) {
+      await clientCertificatesProxy?.close();
+      throw error;
+    }
     context._clientCertificatesProxy = clientCertificatesProxy;
-    if ((options as any).__testHookBeforeSetStorageState)
-      await progress.race((options as any).__testHookBeforeSetStorageState());
     if (options.storageState)
-      await context.setStorageState(progress, options.storageState);
+      await context.setStorageState(metadata, options.storageState);
     this.emit(Browser.Events.Context, context);
     return context;
   }
@@ -121,7 +112,7 @@ export abstract class Browser extends SdkObject {
     if (!this._contextForReuse || hash !== this._contextForReuse.hash || !this._contextForReuse.context.canResetForReuse()) {
       if (this._contextForReuse)
         await this._contextForReuse.context.close({ reason: 'Context reused' });
-      this._contextForReuse = { context: await this.newContextFromMetadata(metadata, params), hash };
+      this._contextForReuse = { context: await this.newContext(metadata, params), hash };
       return { context: this._contextForReuse.context, needsReset: false };
     }
     await this._contextForReuse.context.stopPendingOperations('Context recreated');

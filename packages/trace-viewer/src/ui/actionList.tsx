@@ -164,10 +164,7 @@ export function renderTitleForCall(action: ActionTraceEvent): { elements: React.
     title.push(chunk);
 
     const param = formatProtocolParam(action.params, quotedText);
-    if (match.index === 0)
-      elements.push(param);
-    else
-      elements.push(<span className='action-title-param'>{param}</span>);
+    elements.push(<span className='action-title-param'>{param}</span>);
     title.push(param);
     currentIndex = match.index + fullMatch.length;
   }

@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import { EventEmitter } from 'events';
+
 import {  assert, eventsHelper } from '../../utils';
 import { debugLogger } from '../utils/debugLogger';
 import { helper } from '../helper';
 import { ProtocolError } from '../protocolError';
-import { SdkObject } from '../instrumentation';
 
 import type { RegisteredListener } from '../../utils';
 import type { ConnectionTransport, ProtocolRequest, ProtocolResponse } from '../transport';
@@ -36,7 +37,7 @@ export const ConnectionEvents = {
 // should ignore.
 export const kBrowserCloseMessageId = -9999;
 
-export class CRConnection extends SdkObject {
+export class CRConnection extends EventEmitter {
   private _lastId = 0;
   private readonly _transport: ConnectionTransport;
   readonly _sessions = new Map<string, CRSession>();
@@ -46,8 +47,8 @@ export class CRConnection extends SdkObject {
   readonly rootSession: CRSession;
   _closed = false;
 
-  constructor(parent: SdkObject, transport: ConnectionTransport, protocolLogger: ProtocolLogger, browserLogsCollector: RecentLogsCollector) {
-    super(parent, 'cr-connection');
+  constructor(transport: ConnectionTransport, protocolLogger: ProtocolLogger, browserLogsCollector: RecentLogsCollector) {
+    super();
     this.setMaxListeners(0);
     this._transport = transport;
     this._protocolLogger = protocolLogger;
@@ -100,7 +101,7 @@ export class CRConnection extends SdkObject {
 
 type SessionEventListener = (method: string, params?: Object) => void;
 
-export class CRSession extends SdkObject {
+export class CRSession extends EventEmitter {
   private readonly _connection: CRConnection;
   private _eventListener?: SessionEventListener;
   private readonly _callbacks = new Map<number, { resolve: (o: any) => void, reject: (e: ProtocolError) => void, error: ProtocolError }>();
@@ -115,7 +116,7 @@ export class CRSession extends SdkObject {
   override once: <T extends keyof Protocol.Events | symbol>(event: T, listener: (payload: T extends symbol ? any : Protocol.Events[T extends keyof Protocol.Events ? T : never]) => void) => this;
 
   constructor(connection: CRConnection, parentSession: CRSession | null, sessionId: string, eventListener?: SessionEventListener) {
-    super(connection, 'cr-session');
+    super();
     this.setMaxListeners(0);
     this._connection = connection;
     this._parentSession = parentSession;
@@ -202,17 +203,19 @@ export class CRSession extends SdkObject {
   }
 }
 
-export class CDPSession extends SdkObject {
+export class CDPSession extends EventEmitter {
   static Events = {
     Event: 'event',
     Closed: 'close',
   };
 
+  readonly guid: string;
   private _session: CRSession;
   private _listeners: RegisteredListener[] = [];
 
   constructor(parentSession: CRSession, sessionId: string) {
-    super(parentSession, 'cdp-session');
+    super();
+    this.guid = `cdp-session@${sessionId}`;
     this._session = parentSession.createChildSession(sessionId, (method, params) => this.emit(CDPSession.Events.Event, { method, params }));
     this._listeners = [eventsHelper.addEventListener(parentSession, 'Target.detachedFromTarget', (event: Protocol.Target.detachedFromTargetPayload) => {
       if (event.sessionId === sessionId)
