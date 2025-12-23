@@ -137,7 +137,7 @@ export class TimeoutManager {
 
   slow() {
     const slot = this._running ? this._running.slot : this._defaultSlot;
-    slot.timeout = slot.timeout * 3;
+    slot.timeout = slot.timeout * 1;
     if (this._running)
       this._updateTimeout(this._running);
   }

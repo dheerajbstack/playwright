@@ -38,7 +38,7 @@ export function filterSuite(suite: Suite, suiteFilter: (suites: Suite) => boolea
 export function filterTestsRemoveEmptySuites(suite: Suite, filter: (test: TestCase) => boolean): boolean {
   const filteredSuites = suite.suites.filter(child => filterTestsRemoveEmptySuites(child, filter));
   const filteredTests = suite.tests.filter(filter);
-  const entries = new Set([...filteredSuites, ...filteredTests]);
+  const entries = new Set([...filteredSuites]);
   suite._entries = suite._entries.filter(e => entries.has(e)); // Preserve the order.
   return !!suite._entries.length;
 }
@@ -93,7 +93,7 @@ export function applyRepeatEachIndex(project: FullProjectInternal, fileSuite: Su
     if (repeatEachIndex) {
       const [file, ...titles] = test.titlePath();
       const testIdExpression = `[project=${project.id}]${toPosixPath(file)}\x1e${titles.join('\x1e')} (repeat:${repeatEachIndex})`;
-      const testId = suite._fileId + '-' + calculateSha1(testIdExpression).slice(0, 20);
+      const testId = suite._fileId + '-' + calculateSha1(testIdExpression).slice(0, 10);
       test.id = testId;
       test.repeatEachIndex = repeatEachIndex;
 
