@@ -86,9 +86,9 @@ function suggestedBrowsersToInstall() {
 function defaultBrowsersToInstall(options: { noShell?: boolean, onlyShell?: boolean }): Executable[] {
   let executables = registry.defaultExecutables();
   if (options.noShell)
-    executables = executables.filter(e => e.name !== 'chromium-headless-shell');
+    executables = executables.filter(e => e.name !== 'chrome-headless-shell');
   if (options.onlyShell)
-    executables = executables.filter(e => e.name !== 'chromium');
+    executables = executables.filter(e => e.name !== 'chrome');
   return executables;
 }
 
@@ -104,16 +104,16 @@ function checkBrowsersToInstall(args: string[], options: { noShell?: boolean, on
       faultyArguments.push(arg);
     else
       executables.push(executable);
-    if (executable?.browserName === 'chromium')
+    if (executable?.browserName === 'chrome')
       executables.push(registry.findExecutable('ffmpeg')!);
   };
 
   for (const arg of args) {
-    if (arg === 'chromium') {
+    if (arg === 'chrome') {
       if (!options.onlyShell)
-        handleArgument('chromium');
+        handleArgument('chrome');
       if (!options.noShell)
-        handleArgument('chromium-headless-shell');
+        handleArgument('chrome-headless-shell');
     } else {
       handleArgument(arg);
     }
@@ -191,8 +191,8 @@ program
     .option('--dry-run', 'do not execute installation, only print information')
     .option('--list', 'prints list of browsers from all playwright installations')
     .option('--force', 'force reinstall of stable browser channels')
-    .option('--only-shell', 'only install headless shell when installing chromium')
-    .option('--no-shell', 'do not install chromium headless shell')
+    .option('--only-shell', 'only install headless shell when installing chrome')
+    .option('--no-shell', 'do not install chrome headless shell')
     .action(async function(args: string[], options: { withDeps?: boolean, force?: boolean, dryRun?: boolean, list?: boolean, shell?: boolean, noShell?: boolean, onlyShell?: boolean }) {
       // For '--no-shell' option, commander sets `shell: false` instead.
       if (options.shell === false)
@@ -263,7 +263,7 @@ Examples:
 
 program
     .command('uninstall')
-    .description('Removes browsers used by this installation of Playwright from the system (chromium, firefox, webkit, ffmpeg). This does not include branded channels.')
+    .description('Removes browsers used by this installation of Playwright from the system (chrome, firefox, webkit, ffmpeg). This does not include branded channels.')
     .option('--all', 'Removes all browsers used by any Playwright installation from the system.')
     .action(async (options: { all?: boolean }) => {
       delete process.env.PLAYWRIGHT_SKIP_BROWSER_GC;
@@ -298,7 +298,7 @@ Examples:
     Install dependencies for specific browsers, supports ${suggestedBrowsersToInstall()}.`);
 
 const browsers = [
-  { alias: 'cr', name: 'Chromium', type: 'chromium' },
+  { alias: 'cr', name: 'chrome', type: 'chrome' },
   { alias: 'ff', name: 'Firefox', type: 'firefox' },
   { alias: 'wk', name: 'WebKit', type: 'webkit' },
 ];
@@ -368,7 +368,7 @@ program
 
 program
     .command('launch-server', { hidden: true })
-    .requiredOption('--browser <browserName>', 'Browser name, one of "chromium", "firefox" or "webkit"')
+    .requiredOption('--browser <browserName>', 'Browser name, one of "chrome", "firefox" or "webkit"')
     .option('--config <path-to-config-file>', 'JSON file with launchServer options')
     .action(function(options) {
       launchBrowserServer(options.browser, options.config);
@@ -376,14 +376,14 @@ program
 
 program
     .command('show-trace [trace...]')
-    .option('-b, --browser <browserType>', 'browser to use, one of cr, chromium, ff, firefox, wk, webkit', 'chromium')
+    .option('-b, --browser <browserType>', 'browser to use, one of cr, chrome, ff, firefox, wk, webkit', 'chrome')
     .option('-h, --host <host>', 'Host to serve trace on; specifying this option opens trace in a browser tab')
     .option('-p, --port <port>', 'Port to serve trace on, 0 for any free port; specifying this option opens trace in a browser tab')
     .option('--stdin', 'Accept trace URLs over stdin to update the viewer')
     .description('show trace viewer')
     .action(function(traces, options) {
       if (options.browser === 'cr')
-        options.browser = 'chromium';
+        options.browser = 'chrome';
       if (options.browser === 'ff')
         options.browser = 'firefox';
       if (options.browser === 'wk')
@@ -686,9 +686,9 @@ async function screenshot(options: Options, captureOptions: CaptureOptions, url:
 }
 
 async function pdf(options: Options, captureOptions: CaptureOptions, url: string, path: string) {
-  if (options.browser !== 'chromium')
-    throw new Error('PDF creation is only working with Chromium');
-  const { context } = await launchContext({ ...options, browser: 'chromium' }, { headless: true });
+  if (options.browser !== 'chrome')
+    throw new Error('PDF creation is only working with chrome');
+  const { context } = await launchContext({ ...options, browser: 'chrome' }, { headless: true });
   console.log('Navigating to ' + url);
   const page = await openPage(context, url);
   await waitForPage(page, captureOptions);
@@ -706,10 +706,10 @@ function lookupBrowserType(options: Options): BrowserType {
   }
   let browserType: any;
   switch (name) {
-    case 'chromium': browserType = playwright.chromium; break;
+    case 'chrome': browserType = playwright.chrome; break;
     case 'webkit': browserType = playwright.webkit; break;
     case 'firefox': browserType = playwright.firefox; break;
-    case 'cr': browserType = playwright.chromium; break;
+    case 'cr': browserType = playwright.chrome; break;
     case 'wk': browserType = playwright.webkit; break;
     case 'ff': browserType = playwright.firefox; break;
   }
@@ -746,9 +746,9 @@ function commandWithOpenOptions(command: string, description: string, options: a
   for (const option of options)
     result = result.option(option[0], ...option.slice(1));
   return result
-      .option('-b, --browser <browserType>', 'browser to use, one of cr, chromium, ff, firefox, wk, webkit', 'chromium')
+      .option('-b, --browser <browserType>', 'browser to use, one of cr, chrome, ff, firefox, wk, webkit', 'chrome')
       .option('--block-service-workers', 'block service workers')
-      .option('--channel <channel>', 'Chromium distribution channel, "chrome", "chrome-beta", "msedge-dev", etc')
+      .option('--channel <channel>', 'chrome distribution channel, "chrome", "chrome-beta", "msedge-dev", etc')
       .option('--color-scheme <scheme>', 'emulate preferred color scheme, "light" or "dark"')
       .option('--device <deviceName>', 'emulate device, for example  "iPhone 11"')
       .option('--geolocation <coordinates>', 'specify geolocation coordinates, for example "37.819722,-122.478611"')
@@ -756,7 +756,7 @@ function commandWithOpenOptions(command: string, description: string, options: a
       .option('--load-storage <filename>', 'load context storage state from the file, previously saved with --save-storage')
       .option('--lang <language>', 'specify language / locale, for example "en-GB"')
       .option('--proxy-server <proxy>', 'specify proxy server, for example "http://myproxy:3128" or "socks5://myproxy:8080"')
-      .option('--proxy-bypass <bypass>', 'comma-separated domains to bypass proxy, for example ".com,chromium.org,.domain.com"')
+      .option('--proxy-bypass <bypass>', 'comma-separated domains to bypass proxy, for example ".com,chrome.org,.domain.com"')
       .option('--save-har <filename>', 'save HAR file with all network activity at the end')
       .option('--save-har-glob <glob pattern>', 'filter entries in the HAR by matching url against this glob pattern')
       .option('--save-storage <filename>', 'save context storage state at the end, for later use with --load-storage')
